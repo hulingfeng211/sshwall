@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>WebSSH</title>
+    <link rel="stylesheet" href={{static_url( 'font-awesome-4.7.0/css/font-awesome.min.css')}} />
+    <link rel="stylesheet" href={{static_url( 'node_modules/bootstrap/dist/css/bootstrap.min.css')}} />
+</head>
+
+<body>
+    {%if current_user %} {%include 'navbar.html'%} {%end%}
+    <div class="container">
+        <div class="row " style="margin-bottom:5px;">
+            <div class="col-12">
+                <button type="button" class="btn float-right " data-toggle="modal" data-target="#addUserModal">Add User</button>
+            </div>
+        </div>
+        <!-- Content here -->
+        <div class="row">
+            {%for user in users %}
+            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                <div class="card">
+                    <div class="card-header" style="padding:0px;">
+                        {{user.username}}
+                        <div class="btn-group" style="float:right;" role="group">
+                            <button id="btnGroupDrop1" class="btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-pencil fa-fw"></i></button>
+                            <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                                <a class="dropdown-item delete-user-btn" data-user="{{user.id}}" href="#"><i class="fa fa-times fa-fw"></i>Delete</a>
+                                <a class="dropdown-item edit-user-btn  " data-username="{{user.username}}" data-password="{{user.password}}" aria-disabled="true" data-user="{{user.id}}" href="#"><i class="fa fa-pencil fa-fw"></i>Edit</a>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="card-block">
+                        {% for server in servers %}
+                        <div class="form-check">
+                          <label class="form-check-label">
+                            <input type="checkbox" data-serverid="{{server.id}}" data-userid="{{user.id}}" class="form-check-input user-server-checkbox" name="" id="" value="{{server.id}}" {%if server in user.servers%} checked {%end%}>
+                            {{server.name}}
+                          </label>
+                        </div>
+                        {%end%}
+                    </div>
+                  
+                </div>
+            </div>
+        {%end%}
+        </div>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="modelTitleId">Add User</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="{{reverse_url('user')}}">
+                        <input type="hidden" id="id" name="id"/>
+                        <div class="from-group">
+                            <label class="col-sm-3 col-form-label" for="">UserName:</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="username" id="username" class="form-control" placeholder="" aria-describedby="helpId">
+                            </div>
+                        </div>
+                        <div class="from-group">
+                            <label class="col-sm-3 col-form-label" for="">Password:</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="password" id="password" class="form-control" placeholder="" aria-describedby="helpId">
+                            </div>
+                        </div>
+                        <div class="from-group">
+                            <label class="col-sm-3 col-form-label" for="">Servers:</label>
+                            <div class="col-sm-9">
+                                <select multiple class="form-control" name="server" id="server">
+                                          {%for server in servers %}
+                                        <option value="{{server.id}}">{{server.name}}</option>
+                                        {%end%}
+                                      </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary btn-add-group">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <script src="{{static_url('node_modules/jquery/dist/jquery.min.js')}}"></script>
+    <script src="{{static_url('js/popper.min.js')}}"></script>
+    <script src="{{static_url('node_modules/bootstrap/dist/js/bootstrap.min.js')}}"></script>
+    <script src="{{static_url('js/formvalid.js')}}"></script>
+
+    <script type="text/javascript">
+        //alert('test');
+        $(function () {
+            //$('#addGroupModal')
+            $('.btn-add-group').on('click', function (e) {
+                var form = $('#addUserModal').find('form')[0];
+                $(form).submit();
+            })
+            $('.edit-user-btn').on('click',function(e){
+                $('#addUserModal').find('#modelTitleId').text('Edit User')
+                var form=$('#addUserModal').find('form');
+                $(form).find('input[name=username]').val($(this).data('username'))
+                $(form).find('input[name=id]').val($(this).data('user'))
+                $(form).find('input[name=password]').val($(this).data('password'))
+                $('#addUserModal').modal('show');
+            })
+            $('.delete-user-btn').on('click',function(e){
+                var userid=$(this).data('user')
+                $.ajax({
+                    url:"{{reverse_url('user')}}",
+                    type:'delete',
+                    data:{userid:userid},
+                    success:function(result){
+                        if(result.status==0){
+                            location.reload()
+                        }
+                        else{
+                            alert(result.data)
+                        }
+                    }
+                })
+            })
+
+            $('.user-server-checkbox').on('change',function(e){
+                var serverid=$(this).data('serverid')
+                var userid=$(this).data('userid')
+                var is_add=$(this).is(':checked')
+
+                //alert(is_add);
+                $.ajax({
+                    url:"{{reverse_url('user.server')}}",
+                    type:'post',
+                    data:{serverid:serverid,userid:userid,is_add:is_add},
+                    success:function(result){
+                        if(result.status==0){
+                            location.reload()
+                        }
+                        else{
+                            alert(result.data)
+                        }
+                    }
+                })
+            })
+
+        })
+    </script>
+
+</body>
+
+</html>

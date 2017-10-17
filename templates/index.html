@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>WebSSH</title>
+
+    <link rel="stylesheet" href={{static_url( 'node_modules/xterm/dist/xterm.css')}} />
+    <link rel="stylesheet" href={{static_url( 'font-awesome-4.7.0/css/font-awesome.min.css')}} />
+    <link rel="stylesheet" href={{static_url( 'node_modules/bootstrap/dist/css/bootstrap.min.css')}} />
+    <style>
+        a {
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    {%if current_user %} {%include 'navbar.html'%} {%end%}
+
+    <div class="container">
+        <!-- Content here -->
+        {%if current_user %}
+        <div class="row">
+            {%for item in server_list%}
+            <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3">
+                <div class="card">
+                        {% if current_user.is_super %}
+                    <div class="card-header" style="padding:0px;">
+                        <div class="btn-group" style="float:right;" role="group">
+                            <button id="btnGroupDrop1" class="btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-pencil fa-fw"></i></button>
+                            <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                                <a class="dropdown-item delete-server-btn" data-server="{{item.id}}" href="#"><i class="fa fa-times fa-fw"></i>Delete</a>
+                                <a class="dropdown-item edit-server-btn  " aria-disabled="true" data-server="{{item.id}}" href="#"><i class="fa fa-pencil fa-fw"></i>Edit</a>
+                            </div>
+                        </div>
+                    </div>
+                    {%end%}
+                    <img class="card-img-top" src="{{static_url('assets/top.png')}}" alt="Card image cap">
+                    <div class="card-body">
+                        <h4 class="card-title">{{item.name}}</h4>
+                        <p class="card-text">{{item.remark}}</p>
+                        <a href="{{reverse_url('terminal')}}?id={{item.id}}" target="_blank" class="btn btn-secondary">Connected</a>
+                    </div>
+                </div>
+            </div>
+            {%end%}
+        </div>
+        {%end%}
+         
+        <!-- Change Password Modal -->
+        <div class="modal fade" id="changepwd_modal" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="modelTitleId">Change Password</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+                    </div>
+                    <div class="modal-body">
+                        <form >
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="">Old Password:</label>
+                                <div class="col-sm-8">
+                                    <input type="password" name="old_pwd" id="old_pwd" class="form-control" placeholder="" aria-describedby="helpId">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="">New Password:</label>
+                                <div class="col-sm-8">
+                                    <input type="password" name="new_pwd" id="new_pwd" class="form-control" placeholder="" aria-describedby="helpId">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="">Renew Password:</label>
+                                <div class="col-sm-8">
+                                    <input type="password" name="renew_pwd" id="renew_pwd" class="form-control" placeholder="" aria-describedby="helpId">
+                                </div>
+                            </div>               
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary changepwd-btn">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--end change password maodal-->
+
+        <!-- Login Modal -->
+        <div class="modal fade " data-show="true" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+            <div class="modal-dialog modal-md" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="modelTitleId">User Login</h4>
+                        <!--<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span> -->
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="post" action="{{reverse_url('login')}}">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label" for="">UserName:</label>
+                                <div class="col-sm-9">
+                                    <input type="text" name="username" id="username" class="form-control" placeholder="" aria-describedby="helpId">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label" for="">Password:</label>
+                                <div class="col-sm-9">
+                                    <input type="password" name="password" id="password" class="form-control" placeholder="" aria-describedby="helpId">
+                                </div>
+                            </div>
+
+
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <!--<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> -->
+                        <button type="button" class="btn btn-primary btn-login">Login</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--end login modal-->
+        <!-- Add Server Modal -->
+        <div class="modal fade" id="addServerModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Add Server</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="post" action="{{reverse_url('server')}}">
+                            <input id="id" name="id" hidden/>
+                            <div class="form-group row">
+                                <label class="col-sm-2 col-form-label" for="">Name:</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="name" id="name" class="form-control" placeholder="" aria-describedby="helpId">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-2 col-form-label" for="">Host:</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="host" id="host" class="form-control" placeholder="" aria-describedby="helpId">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-2 col-form-label" for="">Port:</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="port" id="port" value="22" class="form-control" placeholder="" aria-describedby="helpId">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-2 col-form-label" for="">UserName:</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="username" id="username" class="form-control" placeholder="" aria-describedby="helpId">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-2 col-form-label" for="">Password:</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="password" id="password" class="form-control" placeholder="" aria-describedby="helpId">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-2 col-form-label">Group:</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control" name="group" id="group">
+                                  {%for g in groups %}
+                                <option value="{{g.id}}">{{g.name}}</option>
+                                {%end%}
+                              </select>
+
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-2 col-form-label" for="">Remark:</label>
+                                <div class="col-sm-10">
+                                    <textarea class="form-control" name="remark" id="remark" rows="3"></textarea>
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary add-server-btn">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--end add server modal-->
+
+    </div>
+    <script src="{{static_url('node_modules/jquery/dist/jquery.min.js')}}"></script>
+    <script src="{{static_url('js/popper.min.js')}}"></script>
+    <script src="{{static_url('node_modules/bootstrap/dist/js/bootstrap.min.js')}}"></script>
+    <script src="{{static_url('js/formvalid.js')}}"></script>
+
+    <script type="text/javascript">
+        //alert('test');
+        $(function () {
+
+            {% if current_user== None %}
+            //  user login
+            $('#loginModal').modal({
+                show: true,
+                backdrop: false,
+                keyboard: false
+            });
+            {%end %}
+
+            $('.btn-login').on('click', function (event) {
+                var form = $('#loginModal').find('form')[0];
+                var username = $(form).find('input[name=username]').val();
+                var password = $(form).find('input[name=password]').val();
+                if (username == "" || password == "") {
+                    alert('UserName and Password must be type.');
+                    return;
+                }
+                $(form).submit();
+            })
+            $('#addServerModal').on('show.bs.modal', function (e) {
+                $(this).find('form').find("input[type=text], textarea").val("");
+            })
+            $('#changepwd_modal').on('show.bs.modal', function (e) {
+                $(this).find('form').find("input[type=password]").val("");
+            })
+            $('.add-server-btn').on('click', function () {
+                var form = $('#addServerModal').find("form")[0];
+                /* $(form).valid([
+                     { name: "host", type: "ip" },
+                     { name: "port", type: "port" },
+                     { name: "username", type: "username" },
+                     //{name: "password", type: "password"},
+                 ])**/
+                $(form).submit();
+            })
+            $('.edit-server-btn').on('click', function (e) {
+                e.preventDefault()
+                var id = $(this).data('server');
+                $.ajax({
+                    url: "{{reverse_url('server')}}?id=" + id,
+                    type: 'get',
+                    success: function (result) {
+                        var server = JSON.parse(result);
+                        if (server != null) {
+                            var modal = $('#addServerModal');
+                            var form = modal.find('form');
+                            modal.find('.modal-title').text('Edit Server');
+                            modal.modal('show');
+                            form.find('#id').val(server.id);
+                            form.find('#host').val(server.host);
+                            form.find('#port').val(server.port);
+                            form.find('#name').val(server.name);
+                            form.find('#username').val(server.username);
+                            form.find('#password').val(server.secret);
+                            form.find('#remark').val(server.remark);
+                        }
+                    },
+                    error: function (xhr) {
+                        alert('ERROR:Please contact the administrator ')
+                    }
+                })
+
+
+
+            })
+            $('.delete-server-btn').on('click', function (e) {
+                e.preventDefault();
+                var id = $(this).data('server');
+                //alert(id);
+                $.ajax({
+                    url: "{{reverse_url('server')}}",
+                    type: 'DELETE',
+                    data: { 'server': id },
+                    success: function (result) {
+                        location.reload();
+                    },
+                    error: function (xhr) {
+                        alert('ERROR:Please contact the administrator .');
+                    }
+
+                })
+            })
+            $('.changepwd-btn').on('click',function(e){
+                var old_pwd=$('#old_pwd').val();
+                var new_pwd=$('#new_pwd').val();
+                var renew_pwd=$('#renew_pwd').val();
+                if(old_pwd==''||new_pwd==''||renew_pwd==''){
+                    alert('Password is not allowed empty.')
+                    return;
+                }
+                if(new_pwd!=renew_pwd){
+                    alert('New Password are not match');
+                    return ;
+                }
+                $.ajax({
+                    url:"{{reverse_url('changepwd')}}",
+                    data:{old_pwd:old_pwd,new_pwd:new_pwd},
+                    type:'post',
+                    success:function(r){
+                        if(r.status==0){
+                            location.reload()
+                        }
+                        else{
+                            alert(r.data)
+                        }
+                    },
+                    error:function(xhr){
+                        alert('ERROR:Please contact the administrator ');
+                        return;
+                    }
+                })
+                
+            })
+        })
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{{server.name}}({{server.host}})</title>
+
+    <link rel="stylesheet" href={{static_url( 'node_modules/xterm/dist/xterm.css')}} />
+    <link rel="stylesheet" href={{static_url( 'node_modules/xterm/dist/addons/fullscreen/fullscreen.css')}} />
+    <link rel="stylesheet" href={{static_url( 'node_modules/bootstrap/dist/css/bootstrap.min.css')}} />
+    <style>
+        html,
+        body {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #terminal {
+            height: 100%;
+            z-index: 0;
+            background: #00FF00 url('map/n/n/n.png') repeat;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="terminal" ></div>
+
+    <script src="{{static_url('node_modules/jquery/dist/jquery.min.js')}}"></script>
+    <script src="{{static_url('js/popper.min.js')}}"></script>
+    <script src="{{static_url('node_modules/bootstrap/dist/js/bootstrap.min.js')}}"></script>
+    <script src="{{static_url('node_modules/xterm/dist/xterm.js')}}"></script>
+    <script src="{{static_url('node_modules/xterm/dist/addons/fullscreen/fullscreen.js')}}"></script>
+    <script src="{{static_url('node_modules/xterm/dist/addons/fit/fit.js')}}"></script>
+    <script src="{{static_url('js/ws.js')}}"></script>
+    <script src="{{static_url('js/main.js')}}"></script>
+
+    <script type="text/javascript">
+        //alert('test');
+        $(function () {
+            connect("{{server.id}}")
+        })
+
+    </script>
+
+</body>
+
+</html>

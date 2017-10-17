@@ -1,0 +1,39 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="{{reverse_url('home')}}">我的服务器</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+            aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{reverse_url('home')}}">Home <span class="sr-only">(current)</span></a>
+                </li>
+
+                {%for group in groups%}
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{reverse_url('home')}}?group={{group.id}}">{{group.name}} <span class="sr-only">(current)</span></a>
+                </li>
+                {%end%}
+               
+            </ul>
+            <!--<button class="btn btn-primary " style="margin-right:5px;" data-toggle="modal" data-target="#addServerModal">Add Server</button> -->
+             <div class="nav-item dropdown float-right" style="margin-right:20px;" >
+                <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="false">
+          <i class="fa fa-bars" aria-hidden="true"></i>&nbsp;&nbsp;About ME
+        </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                    <a class="dropdown-item" href="{{reverse_url('logout')}}"><i class="fa fa-unlock-alt" aria-hidden="true"></i>&nbsp;&nbsp;Logout</a>
+                    <a class="dropdown-item"  data-toggle="modal" data-target="#changepwd_modal"><i class="fa fa-key" aria-hidden="true"></i>&nbsp;&nbsp;Change Password</a>
+                    {% if current_user.is_super %}
+                    <a class="dropdown-item" href="{{reverse_url('user')}}"><i class="fa fa-user" aria-hidden="true"></i>&nbsp;&nbsp;User Manage</a>
+                    <a class="dropdown-item" href="{{reverse_url('group')}}"><i class="fa  fa-users" aria-hidden="true"></i>&nbsp;&nbsp;Group Manage</a>
+                    <a class="dropdown-item"  data-toggle="modal" data-target="#addServerModal" href="#"><i class="fa fa-server" aria-hidden="true"></i>&nbsp;&nbsp;Add Server</a>
+                    {%end%}
+                </div>
+            </div>
+            
+        </div>
+    </nav>

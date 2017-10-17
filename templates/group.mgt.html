@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>WebSSH</title>
+    <link rel="stylesheet" href={{static_url( 'font-awesome-4.7.0/css/font-awesome.min.css')}} />
+    <link rel="stylesheet" href={{static_url( 'node_modules/bootstrap/dist/css/bootstrap.min.css')}} />
+</head>
+
+<body>
+    {%include navbar.html%}
+    <div class="container">
+        <div class="row " style="margin-bottom:5px;">
+            <div class="col-12">
+                <button type="button" class="btn float-right " data-toggle="modal" data-target="#addGroupModal">Add Group</button>
+            </div>
+        </div>
+        {%for item in groups%}
+        <div class="row">
+            <div class="col">
+                <div class="alert alert-info" role="alert" data-whatever="{{item.id}}">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+                    <strong>{{item.name}}</strong> <a href="#" class="alert-link"></a>
+                </div>
+            </div>
+        </div>
+        {%end%}
+        <!-- Content here -->
+
+        <!-- Modal -->
+        <div class="modal fade" id="addGroupModal" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="modelTitleId">Add Group</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+                    </div>
+                    <div class="modal-body">
+                        <form  method="post" action="{{reverse_url('group')}}">
+                            <label class="col-sm-3 col-form-label" for="">GroupName:</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="groupname" id="groupname" class="form-control" placeholder="" aria-describedby="helpId">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary btn-add-group">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{{static_url('node_modules/jquery/dist/jquery.min.js')}}"></script>
+    <script src="{{static_url('js/popper.min.js')}}"></script>
+    <script src="{{static_url('node_modules/bootstrap/dist/js/bootstrap.min.js')}}"></script>
+    <script src="{{static_url('js/formvalid.js')}}"></script>
+
+    <script type="text/javascript">
+        //alert('test');
+        $(function () {
+            //$('#addGroupModal')
+            $('.btn-add-group').on('click',function(e){
+                var form=$('#addGroupModal').find('form')[0];
+                $(form).submit();
+            })
+            $('.alert').on('closed.bs.alert',function(e){
+                //alert('alert');
+                var id=$(this).data('whatever');
+                
+                $.ajax({
+                    url:"{{reverse_url('group')}}",
+                    type:'delete',
+                    data:{id:id},
+                    success:function(result){
+                        location.reload();
+                    }
+                })
+            })
+
+        })
+    </script>
+
+</body>
+
+</html>
