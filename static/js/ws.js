@@ -1,18 +1,19 @@
 function WSSHClient() {
 };
 
-WSSHClient.prototype._generateEndpoint = function () {
+WSSHClient.prototype._generateEndpoint = function (url) {
     if (window.location.protocol == 'https:') {
         var protocol = 'wss://';
     } else {
         var protocol = 'ws://';
     }
-    var endpoint = protocol + window.location.host + '/sshwall/ws';
+    //var endpoint = protocol + window.location.host + '/sshwall/ws';
+    var endpoint = protocol + window.location.host + url;
     return endpoint;
 };
 
-WSSHClient.prototype.connect = function (options) {
-    var endpoint = this._generateEndpoint();
+WSSHClient.prototype.connect = function (url,options) {
+    var endpoint = this._generateEndpoint(url);
 
     if (window.WebSocket) {
         this._connection = new WebSocket(endpoint);

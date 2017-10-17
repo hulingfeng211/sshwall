@@ -42,7 +42,7 @@
     <script type="text/javascript">
         //alert('test');
         $(function () {
-            connect("{{server.id}}")
+            connect("{{reverse_url('websocket')}}","{{server.id}}")
         })
 
     </script>

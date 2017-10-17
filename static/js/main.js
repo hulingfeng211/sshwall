@@ -1,4 +1,4 @@
-function openTerminal(server_id) {
+function openTerminal(url,server_id) {
     var client = new WSSHClient();
     var size=getTerminalSize()
     
@@ -20,7 +20,7 @@ function openTerminal(server_id) {
     //term.focus();
     //fitAddon.fit(term); 
     term.write('Connecting...');
-    client.connect({
+    client.connect(url,{
         onError: function (error) {
             term.write('Error: ' + error + '\r\n');
             console.debug('error happened');
@@ -59,6 +59,6 @@ function getTerminalSize() {
     };
 }
 
-function connect(server_id) {
-    openTerminal(server_id)
+function connect(url,server_id) {
+    openTerminal(url,server_id)
 }
