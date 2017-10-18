@@ -1,8 +1,6 @@
 # -*- coding:utf-8 -*-
-__author__ = 'xsank'
 
 import json
-#import cPickle
 import os
 import pickle
 from collections import namedtuple

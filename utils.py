@@ -1,8 +1,7 @@
-__author__ = 'xsank'
+# -*- coding:utf-8 -*- 
 
 import re
 import sys
-
 
 _PLATFORM = sys.platform
 

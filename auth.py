@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*- 
 
-#from tornado.web import RequestHandler 
 from handlers import BaseHandler
 from tornado.gen import coroutine
 from models import *

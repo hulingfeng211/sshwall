@@ -1,4 +1,4 @@
-__author__ = 'xsank'
+# -*- coding:utf-8 -*- 
 
 import uuid
 import tornado.websocket
@@ -12,12 +12,7 @@ from tornado.web import escape,authenticated
 from models import *
 
 class BaseHandler(tornado.web.RequestHandler):
-    """
-    def set_default_headers(self, *args, **kwargs):
-        self.set_header("Access-Control-Allow-Origin", "*")
-        self.set_header("Access-Control-Allow-Headers", "x-requested-with")
-        self.set_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS") 
-        """
+     
     @property
     def db(self):
         return self.application.db
@@ -232,6 +227,7 @@ class ServerHandler(BaseHandler):
 
 
 class WSHandler(tornado.websocket.WebSocketHandler):
+    
     clients = dict()
     
     def initialize(self):
