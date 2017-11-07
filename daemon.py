@@ -1,4 +1,4 @@
-# -*- coding:utf-8 -*- 
+# -*- coding:utf-8 -*-
 
 import paramiko
 from paramiko.ssh_exception import AuthenticationException, SSHException
@@ -19,11 +19,16 @@ MAX_DATA_BUFFER = 1024 * 1024
 
 
 class Bridge(object):
+    '''
+    websocket与ssh的其桥接对象
+    '''
+
     def __init__(self, websocket):
         self._websocket = websocket
         self._shell = None
         self._id = 0
         self.ssh = paramiko.SSHClient()
+        self._trans_back=None
 
     @property
     def id(self):
@@ -53,9 +58,6 @@ class Bridge(object):
         self.ssh.set_missing_host_key_policy(
             paramiko.AutoAddPolicy())
         try:
-            # server_id=data['server_id']
-            # server=get_server(server_id)
-            # server['ispwd']=True
             if server:  # self.isPassword(server):
                 self.ssh.connect(
                     hostname=server.host,
@@ -63,14 +65,14 @@ class Bridge(object):
                     username=server.username,
                     password=server.secret,
                 )
-
-            else:
+            # 暂不支持privatekey的方式进行登录
+            '''else:
                 self.ssh.connect(
                     hostname=server.host,
                     port=int(server.port),
                     username=server.username,
                     pkey=self.privaterKey(server.secret, None)
-                )
+                )'''
 
         except AuthenticationException:
             raise Exception("auth failed user:%s ,passwd:%s" %
@@ -81,62 +83,46 @@ class Bridge(object):
 
         self.establish(data)
 
-    def establish(self, data,term="xterm"):
+    def establish(self, data, term="xterm"):
         self._shell = self.ssh.invoke_shell(
-            term, width=int(data.get('width',80)), height=int(data.get('height',24)))
+            term, width=int(data.get('width', 80)), height=int(data.get('height', 24)))
         self._shell.setblocking(0)
         self._id = self._shell.fileno()
-        # IOLoop.instance().register(self)
-        # IOLoop.instance().add_future(self.trans_back())
         self._trans_back = self.trans_back()
-        next(self._trans_back)
-        callback = functools.partial(self.connection_ready, self.shell)
-        io_loop=IOLoop.current()
-        io_loop.add_handler(self._shell.fileno(),
-                            callback, io_loop.READ)
-    """
-    def _read_remote_result(self,*args,**kwargs):
-        future=TracebackFuture()
-        callback=kwargs.get('callback',None)
-        if callback and callable(callback):
-            IOLoop.current().add_future(future,lambda future:callback(future.result()))
+        next(self._trans_back) #激活websocket传输数据的协程
         
-        pass
-    """
+        def trans_data_ready(shell, fd, events):
+            '''
+            接收IOLoop的事件回调，当ssh server有数据需要传输的时候回调此方法
+            '''
+            try:
+                gen_log.info('connection_read')
+                data = shell.recv(MAX_DATA_BUFFER)
+                # todo send data to client directly
+                self._trans_back.send(data)
+            except socket.error as e:
+                if e.args and e.args[0] not in (errno.EWOULDBLOCK, errno.EAGAIN):
+                    gen_log.error('errno.EWOULDBLOCK, errno.EAGAIN')
+                    self.destroy()
+                if isinstance(e, socket.timeout):
+                    gen_log.error('socket.timeout')
+                    self.destroy()
 
-    def connection_ready(self, shell, fd, events):
-
-        # while True:
-        try:
-                # try:
-                #                data = self.bridges[fd].shell.recv(MAX_DATA_BUFFER)
-                #            except socket.error as e:
-                #                if isinstance(e, socket.timeout):
-                #                    break
-                #                else:
-                #                    self.close(fd)
-            gen_log.info('connection_read')
-            data = self._shell.recv(MAX_DATA_BUFFER)
-            self._trans_back.send(data) # todo send data to client directly
-        except socket.error as e:
-            if e.args and e.args[0] not in (errno.EWOULDBLOCK, errno.EAGAIN):
-                gen_log.error('errno.EWOULDBLOCK, errno.EAGAIN')
-                self.destroy()
-            if isinstance(e, socket.timeout):
-                gen_log.error('socket.timeout')
-                self.destroy()
-            # else:
-            #    gen_log.info('connection_read3')
-        # self.destroy()
+        callback = functools.partial(trans_data_ready, self.shell)
+        io_loop = IOLoop.current()
+        io_loop.add_handler(self._shell.fileno(),callback, io_loop.READ)
 
     def trans_forward(self, data=""):
+        '''
+        将数据通过ssh shell发送给后台的ssh server
+        '''
         if self._shell:
             self._shell.send(data)
 
     def trans_back(self):
-        # yield self.id
-        # print(type(arg1))
-        # print(type(arg2))
+        '''
+        传输ssh数据到浏览器的协成，通过websocket对象将数据传给浏览器
+        '''
         connected = True
         while connected:
             result = yield
@@ -153,6 +139,9 @@ class Bridge(object):
         self.destroy()
 
     def destroy(self):
+        '''
+        销毁桥接对象持有的资源
+        '''
         self._websocket.close()
         if self._shell:
             IOLoop.current().remove_handler(self._shell.fileno())
